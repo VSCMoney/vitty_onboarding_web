@@ -1,29 +1,18 @@
 import 'dart:convert';
-import 'dart:html' as html show window;
+import 'dart:html' as html; // web only
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-/// Backend base (FastAPI/ngrok).  GH Pages build में हम --dart-define से देंगे.
-const String backendBase =
-String.fromEnvironment('BACKEND_BASE', defaultValue: '');
-
-String? _query(String key) {
-  final uri = Uri.parse(html.window.location.href);
-  return uri.queryParameters[key];
-}
-
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const OnboardingApp());
-}
+void main() => runApp(const OnboardingApp());
 
 class OnboardingApp extends StatelessWidget {
   const OnboardingApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: OnboardingScreen(),
+    return MaterialApp(
+      title: 'Vitty Onboarding',
+      theme: ThemeData(useMaterial3: true),
+      home: const OnboardingScreen(),
     );
   }
 }
@@ -35,69 +24,70 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _name = TextEditingController();
-  bool _submitting = false;
-  String? _msg;
+  final nameCtrl = TextEditingController();
+  String? sessionId;
+  String status = '';
 
-  Future<void> _submit() async {
-    final state = _query('session_id') ?? _query('state');
-    if (state == null || state.isEmpty) {
-      setState(() => _msg = 'Missing session_id in URL');
+  // Compile-time injected backend base (ngrok): --dart-define=BACKEND_BASE=https://<ngrok>.ngrok-free.dev
+  static const backendBase = String.fromEnvironment('BACKEND_BASE', defaultValue: '');
+
+  @override
+  void initState() {
+    super.initState();
+    final uri = Uri.base;
+    sessionId = uri.queryParameters['session_id'];
+    if (sessionId == null || sessionId!.isEmpty) {
+      status = 'Missing session_id in URL';
+    }
+  }
+
+  Future<void> submit() async {
+    if (sessionId == null || sessionId!.isEmpty) {
+      setState(() => status = 'Missing session_id in URL');
       return;
     }
     if (backendBase.isEmpty) {
-      setState(() => _msg = 'BACKEND_BASE not configured.');
+      setState(() => status = 'App not configured (BACKEND_BASE missing).');
       return;
     }
 
-    setState(() {
-      _submitting = true;
-      _msg = null;
-    });
+    setState(() => status = 'Saving…');
 
     try {
       final resp = await http.post(
         Uri.parse('$backendBase/api/onboarding/complete'),
         headers: {'content-type': 'application/json'},
-        body: jsonEncode({'state': state, 'name': _name.text.trim()}),
+        body: jsonEncode({
+          'session_id': sessionId,
+          'name': nameCtrl.text.trim(),
+        }),
       );
+
       if (resp.statusCode == 200) {
-        setState(() => _msg = 'Onboarding complete. Switch back to ChatGPT and type: done');
+        setState(() => status = 'All set ✅  — You can switch back to ChatGPT.');
       } else {
-        setState(() => _msg = 'Server error: ${resp.statusCode} ${resp.body}');
+        setState(() => status = 'Server error: ${resp.statusCode} ${resp.body}');
       }
     } catch (e) {
-      setState(() => _msg = 'Network error: $e');
-    } finally {
-      setState(() => _submitting = false);
+      setState(() => status = 'Network error: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = _query('session_id') ?? _query('state') ?? '-';
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Card(
-            elevation: 6,
-            margin: const EdgeInsets.all(24),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Text('Vitty Onboarding', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Text('Session: $state', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Welcome 👋', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 16),
-
-                // (optional) "Login with Google" button placeholder for later
-                // ElevatedButton.icon(
-                //   onPressed: _startGoogleLogin, icon: const Icon(Icons.login), label: const Text('Login with Google'),
-                // ),
-
                 TextField(
-                  controller: _name,
+                  controller: nameCtrl,
                   decoration: const InputDecoration(
                     labelText: 'Your name',
                     border: OutlineInputBorder(),
@@ -107,18 +97,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: _submitting ? null : _submit,
-                    child: _submitting
-                        ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Submit'),
+                    onPressed: submit,
+                    child: const Text('Submit'),
                   ),
                 ),
-                const SizedBox(height: 8),
-                if (_msg != null) Text(_msg!, textAlign: TextAlign.center),
-                const SizedBox(height: 8),
-                const Text('After submit, go back to ChatGPT and type "done".',
-                    style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ]),
+                const SizedBox(height: 12),
+                if (status.isNotEmpty) Text(status, textAlign: TextAlign.center),
+              ],
             ),
           ),
         ),
