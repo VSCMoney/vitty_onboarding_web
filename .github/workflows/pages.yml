@@ -2,12 +2,18 @@ name: Deploy Flutter Web to GH Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+
+# ek hi deploy chale
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -19,12 +25,24 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "stable"
+          channel: stable
+          cache: true
 
-      - name: Build (with backend base)
+      - run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # BACKEND_BASE ko Actions Variables se uthayenge (neeche step 2)
+      - name: Build web
+        env:
+          BACKEND_BASE: ${{ vars.BACKEND_BASE }}
         run: |
-          flutter pub get
-          flutter build web --release --dart-define=BACKEND_BASE=${{ vars.BACKEND_BASE }}
+          echo "Using BACKEND_BASE=${BACKEND_BASE}"
+          # NOTE: repo ka naam yahin use karo
+          flutter build web --release \
+            --base-href "/vitty_onboarding_web/" \
+            --dart-define=BACKEND_BASE=${BACKEND_BASE:-https://example.invalid}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -38,6 +56,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
