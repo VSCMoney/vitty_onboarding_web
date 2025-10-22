@@ -5,7 +5,7 @@ import 'dart:js' as js;
 import 'dart:async';
 
 class AuthService {
-  String backendUrl = 'https://pulverulently-unrhapsodically-lisbeth.ngrok-free.dev';
+  String backendUrl = 'https://vittyonboard-production.up.railway.app';
   String googleClientId = 'com.googleusercontent.apps.130321581049-41mfh1t7mn9u6n725mibuq7288vacbgs';
 
   bool _isInitialized = false;
