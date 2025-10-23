@@ -127,7 +127,7 @@ class _CallbackScreenState extends State<CallbackScreen>
 
                         // Success Title
                         const Text(
-                          'Authentication Successful!',
+                          'Authentication Successfulllllyyyyy!',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
