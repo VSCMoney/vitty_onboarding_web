@@ -475,7 +475,7 @@ class AppConfig {
   // Google Web Client ID
   // ⚠️ IMPORTANT: Replace with your actual Web Client ID from Google Cloud Console
   static const String googleWebClientId =
-      '130321581049-41mfh1t7mn9u6n725mibuq7288vacbgs.apps.googleusercontent.com';
+      '130321581049-ktqt7omporh5is930jmjpmmbaq5m5noi.apps.googleusercontent.com';
 
   // OAuth scopes
   static const List<String> googleScopes = [
