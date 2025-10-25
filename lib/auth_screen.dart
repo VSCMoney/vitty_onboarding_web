@@ -469,7 +469,7 @@ class _AuthScreenState extends State<AuthScreen> {
 class AppConfig {
   // Backend URL - Railway deployment
   static const String backendUrl =
-      'https://fastapi-app-130321581049.asia-south1.run.app';
+      'https://vittyonboard-production.up.railway.app';
 
   // Google Web Client ID
   // ⚠️ IMPORTANT: Replace with your actual Web Client ID from Google Cloud Console
