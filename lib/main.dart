@@ -348,7 +348,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         );
       case 1:
         return AuthScreen(
-          onAuthComplete: _completeAuth,
+
         );
       case 2:
         return QuestionsScreen(
