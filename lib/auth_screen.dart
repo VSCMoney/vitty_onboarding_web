@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:vitty_onboarding_web/question.dart';
 import 'callbackscreen.dart'; // ← ADD THIS
 
 
@@ -494,9 +495,18 @@ class _AuthScreenState extends State<AuthScreen> {
         // Navigate to callback screen instead of direct redirect
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => CallbackScreen(
-              redirectUrl: redirectUrl,
+            builder: (_) => QuestionsScreen(
               userEmail: email,
+              onComplete: () {
+                Navigator.of(_).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => CallbackScreen(
+                      redirectUrl: redirectUrl,
+                      userEmail: email,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         );
