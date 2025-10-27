@@ -462,7 +462,7 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      debugPrint('📤 Sending token to backend...');
+      debugPrint('📤 Sending token to backendskjvskvksvk...');
 
       final response = await http.post(
         Uri.parse('${AppConfig.backendUrl}/oauth/callback'),
